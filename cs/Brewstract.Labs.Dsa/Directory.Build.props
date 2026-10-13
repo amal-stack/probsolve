@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Company>Brewstract</Company>
+    <Authors>Amal</Authors>
+    <RepositoryUrl>https://github.com/amal-stack/Brewstract.Labs.Dsa</RepositoryUrl>
+  </PropertyGroup>
+</Project>
