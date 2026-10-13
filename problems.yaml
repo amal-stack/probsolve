@@ -1,0 +1,21 @@
+problems:
+  - title: Two Sum
+    impl: 
+      - csharp: TwoSum
+  
+  - title: Reverse String
+    impl: 
+      - java: ReverseString
+
+  - title: Best Time to Buy and Sell Stock
+    impl: 
+      - csharp: BestTimeToBuyAndSellStock
+
+  - title: Add Two Numbers
+    impl:
+      - csharp: AddTwoNumbers
+
+  - title: All O`one Data Structure
+    impl:
+      - csharp: AllOne
+    status: pending
