@@ -15,8 +15,8 @@ public class AddTwoNumbers
     public static ListNode AddWithCarry(ListNode? l1, ListNode? l2)
     {
         int carry = 0;
-        ListNode head = new();
-        ListNode current = head; 
+        ListNode dummyHead = new();
+        ListNode current = dummyHead; 
 
         while(l1 is not null || l2 is not null)
         {
@@ -36,18 +36,24 @@ public class AddTwoNumbers
             current.next = new(carry);
         }
 
-        return head.next;
+        return dummyHead.next;
     }
 
     private static ListNode NumberToNode(BigInteger number)
     {
+        // Dummy head:
         var head = new ListNode();
+
         var current = head;
         while (number > 0)
         {
             current = current.next = new((int)(number % 10));
             number /= 10;
         }
+
+        // Returns dummy head if head.next (real head) is zero
+        // This happens when number is 0
+        // Safe to return dummy as its val is already 0 and next is null
         return head.next ?? head;
     }
 
