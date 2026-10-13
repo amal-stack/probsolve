@@ -13,9 +13,11 @@ public class Bin(Bin? previous, Bin? next, int frequency, HashSet<string> keys)
         new(previous, null, previous.Frequency + 1, [Key]);
 }
 
+[Problem(ProblemStatus.Pending)]
+[On(Platforms.LeetCode, 432)]
 public class AllOne
 {
-    private readonly Dictionary<string, int> _strings = new();
+    private readonly Dictionary<string, int> _strings = [];
 
     private Bin? _head;
 
@@ -23,6 +25,7 @@ public class AllOne
 
     public AllOne() { }
 
+    [Solution]
     public void Inc(string key)
     {
         if (!_strings.TryGetValue(key, out int count))

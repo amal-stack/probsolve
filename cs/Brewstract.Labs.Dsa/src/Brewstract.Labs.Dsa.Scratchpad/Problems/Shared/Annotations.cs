@@ -10,6 +10,28 @@ public class SolutionAttribute(string description = "") : Attribute
     public bool Preferred { get; init; }
 }
 
+[AttributeUsage(AttributeTargets.Class)]
+public class ProblemAttribute : Attribute
+{
+    public ProblemAttribute(string name, ProblemStatus status = ProblemStatus.Pending)
+    {
+        Name = name;
+        Status = status;
+    }
+
+    public ProblemAttribute(ProblemStatus status) => Status = status;
+
+    public string Name { get; } = string.Empty;
+
+    public ProblemStatus Status { get; init; } = ProblemStatus.Pending;
+}
+
+public enum ProblemStatus
+{
+    Solved,
+    Pending,
+}
+
 [AttributeUsage(AttributeTargets.Method)]
 public class VariantOfAttribute(string of, string description) : Attribute
 {
