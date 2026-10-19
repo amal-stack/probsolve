@@ -1,0 +1,18 @@
+notes:
+  dir: problems
+#index_file: problems/index.md
+strict: false
+# default_languages: [csharp, java]
+languages:
+  csharp:
+    dir: cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems
+    extension: .cs
+    template: tools/prob/templates/csharp.scriban
+    vars:
+      ns: Brewstract.Labs.Dsa.Scratchpad.Problems
+  java:
+    dir: java/scratchpad/src/com/brewstract/labs/dsa/scratchpad/problems
+    extension: .java
+    template: tools/prob/templates/java.scriban
+    vars:
+      package: com.brewstract.labs.dsa.scratchpad.problems
