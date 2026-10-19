@@ -1,0 +1,16 @@
+{{ if sample || has_platforms }}
+using Brewstract.Labs.Dsa.Scratchpad.Problems.Shared;
+{{ end }}
+
+namespace {{ ns }};
+
+{{ for platform in platforms }}[On({{ if platform.is_leetcode }}Platforms.LeetCode, {{ platform.id }}{{ else }}{{ platform.name_literal }}, {{ platform.id_literal }}{{ end }})]
+{{ end }}public class {{ class_name }}
+{
+{{ if sample }}    [Solution]
+    [Complexity(Time = BigO.Linear, Space = BigO.Constant)]
+    public static void Solve()
+    {
+        throw new NotImplementedException();
+    }
+{{ end }}}

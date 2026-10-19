@@ -1,0 +1,22 @@
+package {{ package }};
+
+{{ if sample }}
+import com.brewstract.labs.dsa.scratchpad.problems.shared.BigO;
+import com.brewstract.labs.dsa.scratchpad.problems.shared.Complexity;
+import com.brewstract.labs.dsa.scratchpad.problems.shared.Solution;
+{{ end }}
+{{ if has_platforms }}
+import com.brewstract.labs.dsa.scratchpad.problems.shared.On;
+{{ end }}
+{{ if has_leetcode }}
+import com.brewstract.labs.dsa.scratchpad.problems.shared.Platforms;
+{{ end }}
+
+{{ for platform in platforms }}@On(platform = {{ if platform.is_leetcode }}Platforms.LEETCODE{{ else }}{{ platform.name_literal }}{{ end }}, id = {{ platform.id_literal }})
+{{ end }}public class {{ class_name }} {
+{{ if sample }}    @Solution
+    @Complexity(time = BigO.LINEAR, space = BigO.CONSTANT)
+    public void solve() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+{{ end }}}
