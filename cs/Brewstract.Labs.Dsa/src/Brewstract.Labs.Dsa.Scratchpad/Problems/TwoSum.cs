@@ -81,7 +81,7 @@ public class TwoSum
         throw Unreachable();
     }
 
-    [Solution]
+    [VariantOf(nameof(IndirectSortAndTwoPointers))]
     public static List<int> IndirectSortAndTwoPointersRemappedList(List<int> nums, int target)
     {
         var sorted = RemappedList.Sorted(nums);

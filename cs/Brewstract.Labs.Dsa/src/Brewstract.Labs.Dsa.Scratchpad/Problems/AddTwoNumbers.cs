@@ -16,18 +16,18 @@ public class AddTwoNumbers
     {
         int carry = 0;
         ListNode dummyHead = new();
-        ListNode current = dummyHead; 
+        ListNode current = dummyHead;
 
-        while(l1 is not null || l2 is not null)
+        while (l1 is not null || l2 is not null)
         {
             int n1 = l1?.val ?? 0;
             int n2 = l2?.val ?? 0;
-            
+
             int sum = n1 + n2 + carry;
             carry = sum / 10;
 
             current = current.next = new(sum % 10);
-            
+
             (l1, l2) = (l1?.next, l2?.next);
         }
 
@@ -37,6 +37,42 @@ public class AddTwoNumbers
         }
 
         return dummyHead.next;
+    }
+
+    [VariantOf(nameof(AddWithCarry), "Merge carry condition into while")]
+    public static ListNode AddWithCarryConditionMerged(ListNode? l1, ListNode? l2)
+    {
+        int carry = 0;
+        ListNode dummyHead = new();
+        ListNode current = dummyHead;
+
+        while (l1 is not null || l2 is not null || carry > 0)
+        {
+            int n1 = l1?.val ?? 0;
+            int n2 = l2?.val ?? 0;
+
+            int sum = n1 + n2 + carry;
+            carry = sum / 10;
+
+            current = current.next = new(sum % 10);
+
+            (l1, l2) = (l1?.next, l2?.next);
+        }
+
+        return dummyHead.next;
+    }
+
+    [VariantOf(nameof(AddWithCarry), Tags = ["Recursion"])]
+    public static ListNode? AddWithCarryRecursive(ListNode? l1, ListNode? l2, int carry = 0)
+    {
+        if (l1 is null && l2 is null && carry == 0)
+        {
+            return null;
+        }
+
+        var (newCarry, digit) = Math.DivRem(l1?.val ?? 0 + l2?.val ?? 0 + carry, 10);
+
+        return new(digit, AddWithCarryRecursive(l1?.next, l2?.next, newCarry));
     }
 
     private static ListNode NumberToNode(BigInteger number)
@@ -84,7 +120,7 @@ public class AddTwoNumbers
     private static BigInteger NodeToNumber(ListNode node)
     {
         BigInteger number = 0;
-        BigInteger place = 1; 
+        BigInteger place = 1;
         while (node != null)
         {
             number = node.val * place + number;

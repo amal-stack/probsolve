@@ -1,4 +1,4 @@
-package com.brewstract.labs.dsa.scratchpad.shared;
+package com.brewstract.labs.dsa.scratchpad.problems.shared;
 
 public @interface Complexity {
     String time() default "";

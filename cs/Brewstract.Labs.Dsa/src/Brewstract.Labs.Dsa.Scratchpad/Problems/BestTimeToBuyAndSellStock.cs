@@ -73,7 +73,7 @@ public class BestTimeToBuyAndSellStock
             )
             .MaxProfit;
 
-    [Flawed("minPrice will always be 0 ")]
+    [Flawed("minPrice will always be 0")]
     [Complexity(Time = BigO.Linear, Space = BigO.Constant)]
     public static int TrackMinimumPriceFlawed(int[] prices)
     {

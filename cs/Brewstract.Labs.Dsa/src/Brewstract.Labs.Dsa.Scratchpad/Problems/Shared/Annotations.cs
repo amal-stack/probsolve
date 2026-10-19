@@ -10,6 +10,7 @@ public class SolutionAttribute(string description = "") : Attribute
     public bool Preferred { get; init; }
 }
 
+
 [AttributeUsage(AttributeTargets.Class)]
 public class ProblemAttribute : Attribute
 {
@@ -33,11 +34,9 @@ public enum ProblemStatus
 }
 
 [AttributeUsage(AttributeTargets.Method)]
-public class VariantOfAttribute(string of, string description) : Attribute
+public class VariantOfAttribute(string of, string description = "") : SolutionAttribute(description)
 {
     public string Of { get; } = of;
-    public string Description { get; } = description;
-
     public string[] LanguageFeatures { get; init; } = [];
 
     public string[] Tags { get; init; } = [];
@@ -57,7 +56,7 @@ public class ComplexityAttribute : Attribute
     public string Space { get; init; } = string.Empty;
 }
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
 public class OnAttribute(string platform, string id) : Attribute
 {
     public OnAttribute(string platform, int id)
