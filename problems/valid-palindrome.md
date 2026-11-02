@@ -4,8 +4,8 @@ status: solved
 created: 2026-10-14
 solved_on: 2026-10-16
 implementations:
-  java: ../java/scratchpad/src/com/brewstract/labs/dsa/scratchpad/problems/ValidPalindrome.java
   csharp: ../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ValidPalindrome.cs
+  java: ../java/scratchpad/src/com/brewstract/labs/dsa/scratchpad/problems/ValidPalindrome.java
 ---
 # Valid Palindrome
 

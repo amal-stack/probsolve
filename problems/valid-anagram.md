@@ -1,8 +1,8 @@
 ---
 title: Valid Anagram
-status: pending
+status: solved
 created: 2026-10-19
-solved_on: null
+solved_on: 2026-10-22
 implementations:
   csharp: ../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ValidAnagram.cs
 ---

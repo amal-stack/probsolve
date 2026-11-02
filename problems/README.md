@@ -1,7 +1,7 @@
 # Problems
 
 <!-- prob:index:start -->
-Problems: solved 3 · pending 5 · revisit 0
+Problems: solved 5 · pending 5 · revisit 0
 
 | Problem | Status | Solved on | Solutions |
 | --- | --- | --- | --- |
@@ -12,5 +12,7 @@ Problems: solved 3 · pending 5 · revisit 0
 | [Two Sum](two-sum.md) | pending | — | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/TwoSum.cs) |
 | [Valid Palindrome](valid-palindrome.md) | solved | 2026-10-16 | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ValidPalindrome.cs) · [java](../java/scratchpad/src/com/brewstract/labs/dsa/scratchpad/problems/ValidPalindrome.java) |
 | [Container With Most Water](container-with-most-water.md) | solved | 2026-10-19 | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ContainerWithMostWater.cs) |
-| [Valid Anagram](valid-anagram.md) | pending | — | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ValidAnagram.cs) |
+| [Valid Anagram](valid-anagram.md) | solved | 2026-10-22 | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ValidAnagram.cs) |
+| [Reverse Vowels of a String](reverse-vowels-of-a-string.md) | solved | 2026-11-02 | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ReverseVowelsOfAString.cs) |
+| [Three Sum](three-sum.md) | pending | — | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ThreeSum.cs) |
 <!-- prob:index:end -->
