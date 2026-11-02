@@ -366,6 +366,9 @@ public sealed class ProblemMetadata
 
     public Dictionary<string, string> Implementations { get; set; } =
         new(StringComparer.OrdinalIgnoreCase);
+
+    [YamlIgnore]
+    public Dictionary<string, object?> FrontMatter { get; set; } = new(StringComparer.Ordinal);
 }
 
 /// <summary>A parsed Markdown problem including its source path and preserved body.</summary>
@@ -403,13 +406,16 @@ public static class ProblemStore
     /// <summary>Finds the explicitly supplied configuration or searches the current directory and its parents.</summary>
     private static string FindConfig(string? explicitPath)
     {
-        if (!string.IsNullOrWhiteSpace(explicitPath))
+        var requested = string.IsNullOrWhiteSpace(explicitPath)
+            ? Environment.GetEnvironmentVariable("PROB_CONFIG")
+            : explicitPath;
+        if (!string.IsNullOrWhiteSpace(requested))
         {
-            var absolute = Path.GetFullPath(explicitPath);
+            var absolute = Path.GetFullPath(requested);
             if (!File.Exists(absolute))
             {
                 throw new FileNotFoundException(
-                    $"Configuration file not found: {absolute}",
+                    $"Configuration file not found (from --config or PROB_CONFIG): {absolute}",
                     absolute
                 );
             }
@@ -952,6 +958,7 @@ public static class ProblemStore
                 StringComparer.OrdinalIgnoreCase
             );
         metadata.Tags = NormalizeTags(metadata.Tags ?? []);
+        metadata.FrontMatter = fields;
         if (string.IsNullOrWhiteSpace(metadata.Title))
         {
             throw new InvalidOperationException($"Frontmatter title is required: {path}");
@@ -1036,19 +1043,52 @@ public static class ProblemStore
             ?.Key;
     }
 
-    /// <summary>Serializes frontmatter while preserving explicit null for an unknown solved date.</summary>
+    /// <summary>Serializes managed frontmatter fields while preserving unknown keys and their order.</summary>
     private static string RenderMetadata(ProblemMetadata metadata)
     {
-        var yaml = YamlWriter.Serialize(metadata);
-        if (metadata.SolvedOn is null)
-        {
-            yaml = Regex.Replace(yaml, @"(?m)^solved_on:[ \t]*\r?$", "solved_on: null");
-        }
+        var fields = new Dictionary<string, object?>(metadata.FrontMatter, StringComparer.Ordinal);
+        SetFrontMatterField(fields, "title", metadata.Title);
+        SetFrontMatterField(fields, "status", metadata.Status);
+        SetFrontMatterField(fields, "created", metadata.Created);
+        SetFrontMatterField(fields, "solved_on", metadata.SolvedOn);
         if (metadata.Tags.Count == 0)
         {
-            yaml = Regex.Replace(yaml, @"(?m)^tags:[ \t]*(?:\[\])?\r?\n?", "");
+            RemoveFrontMatterField(fields, "tags");
+        }
+        else
+        {
+            SetFrontMatterField(fields, "tags", metadata.Tags);
+        }
+        SetFrontMatterField(fields, "implementations", metadata.Implementations);
+        var yaml = YamlWriter.Serialize(fields);
+        if (metadata.SolvedOn is null)
+        {
+            yaml = Regex.Replace(yaml, @"(?im)^(solved_on):[ \t]*\r?$", "$1: null");
         }
         return yaml.TrimEnd();
+    }
+
+    private static void SetFrontMatterField(
+        Dictionary<string, object?> fields,
+        string name,
+        object? value
+    )
+    {
+        var existingKey = fields.Keys.FirstOrDefault(key =>
+            key.Equals(name, StringComparison.OrdinalIgnoreCase)
+        );
+        fields[existingKey ?? name] = value;
+    }
+
+    private static void RemoveFrontMatterField(Dictionary<string, object?> fields, string name)
+    {
+        var existingKey = fields.Keys.FirstOrDefault(key =>
+            key.Equals(name, StringComparison.OrdinalIgnoreCase)
+        );
+        if (existingKey is not null)
+        {
+            fields.Remove(existingKey);
+        }
     }
 
     /// <summary>Combines serialized YAML frontmatter and the Markdown body with LF line endings.</summary>
@@ -1138,25 +1178,21 @@ public static class ProblemStore
         var className = ClassName(problem.Metadata.Title);
         foreach (var language in repository.Languages.Values)
         {
-            string? previous = null;
-            if (priorImplementations.TryGetValue(language.Name, out var trackedPath))
+            var hasTrackedPath = priorImplementations.TryGetValue(
+                language.Name,
+                out var trackedPath
+            );
+            var previous = hasTrackedPath
+                ? ResolvePath(Path.GetDirectoryName(problem.Path)!, trackedPath!)
+                : null;
+            if (previous is not null && File.Exists(previous))
             {
-                previous = ResolvePath(Path.GetDirectoryName(problem.Path)!, trackedPath);
-                if (File.Exists(previous))
-                {
-                    implementations[language.Name] = RelativeImplementation(
-                        repository,
-                        problem.Path,
-                        previous
-                    );
-                    continue;
-                }
-                if (reportMissing)
-                {
-                    AnsiConsole.MarkupLine(
-                        $"[yellow]Missing tracked {Markup.Escape(language.Name)} implementation:[/] {Markup.Escape(previous)}"
-                    );
-                }
+                implementations[language.Name] = RelativeImplementation(
+                    repository,
+                    problem.Path,
+                    previous
+                );
+                continue;
             }
             var canonical = Path.Combine(
                 language.Directory,
@@ -1164,10 +1200,27 @@ public static class ProblemStore
             );
             if (File.Exists(canonical))
             {
-                implementations[language.Name] = RelativeImplementation(
+                var canonicalRelative = RelativeImplementation(
                     repository,
                     problem.Path,
                     canonical
+                );
+                implementations[language.Name] = canonicalRelative;
+                if (
+                    previous is not null
+                    && !PathComparer.Equals(Path.GetFullPath(previous), Path.GetFullPath(canonical))
+                )
+                {
+                    AnsiConsole.MarkupLine(
+                        $"[grey]{Markup.Escape(language.Name)}: {Markup.Escape(trackedPath!)} -> {Markup.Escape(canonicalRelative)}[/]"
+                    );
+                }
+            }
+            else if (reportMissing)
+            {
+                var missingPath = previous ?? canonical;
+                AnsiConsole.MarkupLine(
+                    $"[yellow]Missing tracked {Markup.Escape(language.Name)} implementation:[/] {Markup.Escape(missingPath)}"
                 );
             }
         }
@@ -1649,7 +1702,11 @@ public static class ProblemStore
         if (forceMetadata && existing is not null && !moving)
         {
             // Reconcile paths from disk before adding missing language scaffolds in this invocation.
-            RebuildMetadata(repository, new ProblemDocument(markdownPath, metadata, body));
+            RebuildMetadata(
+                repository,
+                new ProblemDocument(markdownPath, metadata, body),
+                reportMissing: true
+            );
         }
 
         // Render missing scaffolds, skip existing ones, and record each selected implementation.
@@ -2109,6 +2166,12 @@ public static class ProblemStore
                         $"Empty term in '{field}{op}{value}'. Supply a name for every comma or pipe."
                     );
                 }
+                if (isExact && terms.Any(term => term is "*" or "-*"))
+                {
+                    throw new InvalidOperationException(
+                        $"'{field}{op}{value}' is not supported. Use '{field}:*' for any value or '{field}:-*' for none."
+                    );
+                }
                 if (
                     terms.Any(term => term.Contains('*'))
                     && !(terms.Length == 1 && terms[0] is "*" or "-*")
@@ -2356,8 +2419,8 @@ public static class ProblemStore
         var defaults =
             format == "long"
                 ? categoriesConfigured
-                    ? new[]
-                    {
+                    ?
+                    [
                         "title",
                         "status",
                         "languages",
@@ -2366,9 +2429,9 @@ public static class ProblemStore
                         "tags",
                         "category",
                         "path",
-                    }
-                    : new[]
-                    {
+                    ]
+                    :
+                    [
                         "title",
                         "status",
                         "languages",
@@ -2376,11 +2439,11 @@ public static class ProblemStore
                         "solved_on",
                         "tags",
                         "path",
-                    }
+                    ]
                 : format == "json"
                     ? categoriesConfigured
-                        ? new[]
-                        {
+                        ?
+                        [
                             "title",
                             "slug",
                             "status",
@@ -2391,9 +2454,9 @@ public static class ProblemStore
                             "category",
                             "path",
                             "implementations",
-                        }
-                        : new[]
-                        {
+                        ]
+                        :
+                        [
                             "title",
                             "slug",
                             "status",
@@ -2403,7 +2466,7 @@ public static class ProblemStore
                             "tags",
                             "path",
                             "implementations",
-                        }
+                        ]
                     : new[] { "title", "status", "languages" };
         if (requested is null)
         {
@@ -2570,6 +2633,7 @@ public static class ProblemStore
         }
 
         List<string> unimplementedLanguages = [];
+        List<string> missingFiles = [];
         foreach (var languageName in selectedLanguages)
         {
             if (!problem.Metadata.Implementations.TryGetValue(languageName, out var relative))
@@ -2580,10 +2644,15 @@ public static class ProblemStore
             var path = ResolvePath(Path.GetDirectoryName(problem.Path)!, relative);
             if (!File.Exists(path))
             {
-                throw new FileNotFoundException(
-                    $"Implementation file does not exist: {path}",
-                    path
-                );
+                if (!printEverything)
+                {
+                    throw new FileNotFoundException(
+                        $"Implementation file does not exist: {path}",
+                        path
+                    );
+                }
+                missingFiles.Add($"{languageName}: {path}");
+                continue;
             }
             links.Add((languageName, path));
         }
@@ -2622,6 +2691,13 @@ public static class ProblemStore
         {
             AnsiConsole.MarkupLineInterpolated(
                 $"\n[grey]No implementation exists for:[/] [yellow]{string.Join(", ", unimplementedLanguages)}[/]"
+            );
+        }
+
+        if (missingFiles is not [])
+        {
+            AnsiConsole.MarkupLineInterpolated(
+                $"\n[yellow]Recorded files missing on disk (run prob sync):[/] {string.Join(", ", missingFiles)}"
             );
         }
 
@@ -2729,15 +2805,19 @@ public static class ProblemStore
         var repository = Load(settings);
         var problem = FindProblem(repository, settings.Problem);
         var status = NormalizeStatus(settings.Status);
+        var wasSolved = problem.Metadata.Status == "solved";
+        var previousSolvedOn = problem.Metadata.SolvedOn;
         problem.Metadata.Status = status;
         problem.Metadata.SolvedOn =
             settings.SolvedOn is not null
                 ? ParseDate(settings.SolvedOn, "solved_on")
                     .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
             : status == "solved"
-                ? DateOnly
-                    .FromDateTime(DateTime.Today)
-                    .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                ? wasSolved
+                    ? previousSolvedOn
+                    : DateOnly
+                        .FromDateTime(DateTime.Today)
+                        .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
             : null;
         var markdown = RenderDocument(problem.Metadata, problem.Body);
         var index = BuildIndex(
@@ -2752,19 +2832,29 @@ public static class ProblemStore
         if (settings.DryRun)
         {
             AnsiConsole.MarkupLine($"[green]Would update:[/] {Markup.Escape(problem.Path)}");
+    
             AnsiConsole.WriteLine(markdown);
             AnsiConsole.MarkupLine(
                 $"[green]Would update:[/] {Markup.Escape(repository.IndexFile)}"
             );
             AnsiConsole.WriteLine(index);
-            return 0;
         }
-
-        File.WriteAllText(problem.Path, NormalizeLineEndings(markdown), new UTF8Encoding(false));
-        WriteIndex(repository, index);
+        else
+        {
+            File.WriteAllText(
+                problem.Path,
+                NormalizeLineEndings(markdown),
+                new UTF8Encoding(false)
+            );
+            WriteIndex(repository, index);
+        }
         AnsiConsole.MarkupLine(
-            $"[green]Updated status for[/] {Markup.Escape(problem.Metadata.Title)}: {Markup.Escape(status)}"
+            $"Updated status for {Markup.Escape(problem.Metadata.Title)}: {Markup.Escape(status)} (solved_on {Markup.Escape(problem.Metadata.SolvedOn ?? "—")})"
         );
+        if (wasSolved && status != "solved" && previousSolvedOn is not null)
+        {
+            AnsiConsole.MarkupLine("[grey]Note: solved_on was cleared because status left solved.[/]");
+        }
         return 0;
     }
 
