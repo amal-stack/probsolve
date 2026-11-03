@@ -30,11 +30,11 @@ public class ValidAnagram
         return true;
     }
 
-
     [Solution]
     [Complexity(Time = BigO.Linear, Space = BigO.Constant)]
     public static bool HashCompare(string s, string t)
     {
-      throw new NotImplementedException();
+        //Create hashmaps/histograms out of both and compare each value
+        throw new NotImplementedException();
     }
 }
