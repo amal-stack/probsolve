@@ -1,7 +1,7 @@
 # Problems
 
 <!-- prob:index:start -->
-Problems: solved 5 · pending 5 · revisit 0
+Problems: solved 5 · pending 6 · revisit 0
 
 | Problem | Status | Solved on | Solutions |
 | --- | --- | --- | --- |
@@ -15,4 +15,5 @@ Problems: solved 5 · pending 5 · revisit 0
 | [Valid Anagram](valid-anagram.md) | solved | 2026-10-22 | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ValidAnagram.cs) |
 | [Reverse Vowels of a String](reverse-vowels-of-a-string.md) | solved | 2026-11-02 | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ReverseVowelsOfAString.cs) |
 | [Three Sum](three-sum.md) | pending | — | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/ThreeSum.cs) |
+| [Evaluate Reverse Polish Notation](evaluate-reverse-polish-notation.md) | pending | — | [csharp](../cs/Brewstract.Labs.Dsa/src/Brewstract.Labs.Dsa.Scratchpad/Problems/EvaluateReversePolishNotation.cs) |
 <!-- prob:index:end -->
